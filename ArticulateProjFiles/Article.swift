@@ -14,10 +14,31 @@ class Article: NSObject {
     var url: String?
     var imageUrl: String?
     var authorImg: UIImage?
-    var favorite = false
+    var favorite: Bool
+    var saved = 0
+
+    
+    init(title: String, url: String, imageUrl: String, favorite: Bool) {
+        self.title = title
+        self.url = url
+        self.imageUrl = imageUrl
+        self.favorite = favorite
+    }
     
     func setAuthorPic() {
         
+    }
+    
+    func favToggle() {
+        if favorite == false {
+            favorite = true
+        } else {
+            favorite = false
+        }
+    }
+    
+    func getFavStatus() -> Bool {
+        return favorite
     }
     
 }
