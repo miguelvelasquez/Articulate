@@ -12,6 +12,8 @@ import CoreData
 class FavoritesViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
 
     @IBOutlet weak var collectionView: UICollectionView!
+    @IBOutlet weak var noSavedLabel: UILabel!
+    
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     var savedArticles: [FarticleMO] = []
@@ -23,6 +25,8 @@ class FavoritesViewController: UIViewController, UICollectionViewDataSource, UIC
         collectionView.delegate = self
         collectionView.dataSource = self
         fetchArticlesFromCoreData()
+        loadImages()
+        noSavedLabel.isHidden = true
         // Do any additional setup after loading the view.
     }
     
@@ -39,19 +43,19 @@ class FavoritesViewController: UIViewController, UICollectionViewDataSource, UIC
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        print("display cell")
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "farticleCell", for: indexPath) as! ArticleCell
         let farticle = self.savedArticles[indexPath.item]
         let article = Article(title: farticle.title!, url: farticle.url!, imageUrl: farticle.imageUrl!, favorite: true)
+        cell.title.text = ""
+        cell.article = nil
         cell.article = article
         article.saved = 1
+        article.favorite = true
         articles?.append(article)
         cell.title.text = self.articles?[indexPath.item].title
         cell.setYellowStar()
         //cell.author.image = self.articles?[indexPath.item].authorImg
-        if (self.articles?[indexPath.item].imageUrl != nil) {
-            cell.image.loadImage(from: (self.articles?[indexPath.item].imageUrl!)!)
-        }
+        cell.image.image = cell.article?.image
         cell.layer.cornerRadius = 10
         cells?.append(cell)
         return cell
@@ -69,7 +73,11 @@ class FavoritesViewController: UIViewController, UICollectionViewDataSource, UIC
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        print(savedArticles.count)
+        if savedArticles.count == 0 {
+            noSavedLabel.isHidden = false
+        } else {
+            noSavedLabel.isHidden = true
+        }
         return savedArticles.count
     }
     
@@ -100,7 +108,6 @@ class FavoritesViewController: UIViewController, UICollectionViewDataSource, UIC
 
             do {
                 try context.save()
-                print("saved!")
             } catch let error as NSError  {
                 print("Could not save \(error), \(error.userInfo)")
             } catch {
@@ -117,6 +124,14 @@ class FavoritesViewController: UIViewController, UICollectionViewDataSource, UIC
             savedArticles = try context.fetch(FarticleMO.fetchRequest())
         } catch {
             print("Fetching Articles from Core Data failed :( ")
+        }
+    }
+    
+    func loadImages() {
+        if articles != nil {
+            for article in articles! {
+                article.loadImage(from: article.imageUrl!)
+            }
         }
     }
 

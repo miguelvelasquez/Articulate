@@ -31,14 +31,32 @@ class WebViewController: UIViewController {
     }
     @IBAction func favWasPressed(_ sender: Any) {
         article?.favToggle()
-        updateStar()
+        if article?.getFavStatus() == true {
+            setYellowStar()
+            article?.saveArticle()
+            article?.saved = 1
+            article?.favorite = true
+        } else {
+            setEmptyStar()
+            article?.unsaveArticle()
+            article?.saved = 0
+            article?.favorite = false
+        }
+    }
+    
+    func setYellowStar() {
+        star.setImage(yellowStar, for:UIControlState.normal)
+    }
+    
+    func setEmptyStar() {
+        star.setImage(emptyStar, for:UIControlState.normal)
     }
     
     func updateStar() {
         if (article?.getFavStatus() == true) {
-            star.setImage(yellowStar, for:UIControlState.normal)
+            setYellowStar()
         } else {
-            star.setImage(emptyStar, for:UIControlState.normal)
+            setEmptyStar()
         }
     }
 

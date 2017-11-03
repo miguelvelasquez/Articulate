@@ -22,7 +22,6 @@ class ArticleViewController: UIViewController, UICollectionViewDataSource, UICol
         cells = []
         fetchArticles()
         // Do any additional setup after loading the view.
-        checkArticlesFromCoreData()
     }
 
     override func didReceiveMemoryWarning() {
@@ -32,8 +31,8 @@ class ArticleViewController: UIViewController, UICollectionViewDataSource, UICol
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        updateFaves()
         checkArticlesFromCoreData()
+        //updateFaves()
     }
     
     //Fetch Articles from newsapi.org
@@ -52,8 +51,11 @@ class ArticleViewController: UIViewController, UICollectionViewDataSource, UICol
                     for articleFromJson in articlesFromJson {
                         if let title = articleFromJson["title"] as? String, let url =
                             articleFromJson["url"] as? String, let urlToImage = articleFromJson["urlToImage"] as? String {
-                             self.articles?.append(Article(title: title, url: url, imageUrl: urlToImage, favorite: false))
+                            let art = Article(title: title, url: url, imageUrl: urlToImage, favorite: false)
+                            art.loadImage(from: art.imageUrl!)
+                            self.articles?.append(art)
                         }
+                        
                     }
                 }
                 DispatchQueue.main.async {
@@ -69,14 +71,18 @@ class ArticleViewController: UIViewController, UICollectionViewDataSource, UICol
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "articleCell", for: indexPath) as! ArticleCell
-        cell.title.text = self.articles?[indexPath.item].title
-        //cell.author.image = self.articles?[indexPath.item].authorImg
+        cell.title.text = ""
+        cell.article = nil
+        cell.setEmptyStar()
         cell.article = self.articles?[indexPath.item]
-        if (self.articles?[indexPath.item].imageUrl != nil) {
-            cell.image.loadImage(from: (self.articles?[indexPath.item].imageUrl!)!)
-        }
+        cell.title.text = cell.article?.title
+        //cell.author.image = self.articles?[indexPath.item].authorImg
+        cell.image.image = cell.article?.image
         cell.layer.cornerRadius = 10
         cells?.append(cell)
+        if cell.article?.getFavStatus() == true {
+            cell.setYellowStar()
+        }
         return cell
     }
     
@@ -103,7 +109,6 @@ class ArticleViewController: UIViewController, UICollectionViewDataSource, UICol
     }
     
     func checkArticlesFromCoreData() {
-        print("check")
         let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
         var savedArticles: [FarticleMO] = []
         do {
@@ -115,13 +120,17 @@ class ArticleViewController: UIViewController, UICollectionViewDataSource, UICol
             for farticle in savedArticles {
                 if cell.article?.url == farticle.url {
                     cell.article?.saved = 1
-                    cell.fave = 1
+                    cell.article?.favorite = true
                     cell.setYellowStar()
+                } else {
+                    cell.article?.saved = 0
+                    cell.article?.favorite = false
+                    cell.setEmptyStar()
                 }
             }
-            
         }
     }
+    
     
 }
 
